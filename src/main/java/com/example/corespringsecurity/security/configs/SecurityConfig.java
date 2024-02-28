@@ -1,9 +1,11 @@
 package com.example.corespringsecurity.security.configs;
 
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -11,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -18,14 +21,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http.authorizeHttpRequests(form -> form
-                .requestMatchers("/").permitAll()
-                .requestMatchers("/mypage").hasRole("USER")
-                .requestMatchers("/messages").hasRole("MANAGER")
-                .requestMatchers("/config").hasRole("ADMIN")
+                .requestMatchers(new AntPathRequestMatcher("/")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/mypage")).hasRole("USER")
+                .requestMatchers(new AntPathRequestMatcher("/messages")).hasRole("MANAGER")
+                .requestMatchers(new AntPathRequestMatcher("/config")).hasRole("ADMIN")
         );
 
         http.formLogin(form -> {});
         return http.build();
+    }
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
     @Bean
     protected PasswordEncoder passwordEncoder() {
@@ -45,13 +52,13 @@ public class SecurityConfig {
         UserDetails manager = User.builder()
                 .username("manager")
                 .password(password)
-                .roles("MANAGER")
+                .roles("MANAGER","USER")
                 .build();
 
         UserDetails admin = User.builder()
                 .username("admin")
                 .password(password)
-                .roles("ADMIN")
+                .roles("ADMIN","USER","MANAGER")
                 .build();
 
         return new InMemoryUserDetailsManager(user,manager,admin);
