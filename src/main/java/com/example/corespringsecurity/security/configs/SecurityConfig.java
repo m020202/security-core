@@ -36,8 +36,12 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
         );
 
-        http.formLogin(form -> {
-        });
+        http.formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/")
+                .loginProcessingUrl("/login_proc")
+                .permitAll()
+        );
 
         http.authenticationProvider(authenticationProvider());
 
