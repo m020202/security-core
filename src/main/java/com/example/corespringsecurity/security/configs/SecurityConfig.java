@@ -1,5 +1,6 @@
 package com.example.corespringsecurity.security.configs;
 
+import com.example.corespringsecurity.security.common.FormAuthenticationDetailsSource;
 import com.example.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import com.example.corespringsecurity.security.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
+    private final FormAuthenticationDetailsSource detailsSource;
 
     @Bean
     public CustomAuthenticationProvider authenticationProvider() {
@@ -38,6 +40,7 @@ public class SecurityConfig {
 
         http.formLogin(form -> form
                 .loginPage("/login")
+                .authenticationDetailsSource(detailsSource)
                 .defaultSuccessUrl("/")
                 .loginProcessingUrl("/login_proc")
                 .permitAll()

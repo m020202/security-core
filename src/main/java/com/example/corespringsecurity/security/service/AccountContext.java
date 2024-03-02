@@ -19,16 +19,3 @@ public class AccountContext extends User {
         return account;
     }
 }
-
-//public class AccountContext extends User {
-//    private final Account account;
-//
-//    public AccountContext(Account account, Collection<? extends GrantedAuthority> authorities) {
-//        super(account.getUsername(), account.getPassword(), authorities);
-//        this.account = account;
-//    }
-//
-//    public Account getAccount() {
-//        return account;
-//    }
-//}
