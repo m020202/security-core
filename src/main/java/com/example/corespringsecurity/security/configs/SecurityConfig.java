@@ -1,6 +1,7 @@
 package com.example.corespringsecurity.security.configs;
 
 import com.example.corespringsecurity.security.common.FormAuthenticationDetailsSource;
+import com.example.corespringsecurity.security.handler.CustomAccessDeniedHandler;
 import com.example.corespringsecurity.security.handler.CustomAuthenticationFailureHandler;
 import com.example.corespringsecurity.security.handler.CustomAuthenticationSuccessHandler;
 import com.example.corespringsecurity.security.provider.CustomAuthenticationProvider;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -53,12 +55,19 @@ public class SecurityConfig {
                 .loginProcessingUrl("/login_proc")
                 .permitAll()
         );
-
         http.authenticationProvider(authenticationProvider());
+
+        http.exceptionHandling(form -> form
+                .accessDeniedHandler(accessDeniedHandler())
+        );
 
         return http.build();
     }
-
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        AccessDeniedHandler accessDeniedHandler = new CustomAccessDeniedHandler("/denied");
+        return accessDeniedHandler;
+    }
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
