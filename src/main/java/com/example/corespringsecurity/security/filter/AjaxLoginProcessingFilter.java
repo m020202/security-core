@@ -1,28 +1,45 @@
 package com.example.corespringsecurity.security.filter;
 
+import com.example.corespringsecurity.domain.AccountDto;
+import com.example.corespringsecurity.security.token.AjaxAuthenticationToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.codehaus.groovy.util.StringUtil;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 
 public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingFilter {
-    public AjaxLoginProcessingFilter(String defaultFilterProcessesUrl) {
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    public AjaxLoginProcessingFilter() {
         super(new AntPathRequestMatcher("/api/login"));
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+            throws AuthenticationException, IOException, ServletException {
 
         if (!isAjax(request)) {
             throw new IllegalStateException("인증 방식이 다름");
         }
 
-        return null;
+        AccountDto accountDto = objectMapper.readValue(request.getReader(), AccountDto.class);
+        if (StringUtils.isEmpty(accountDto.getUsername()) || StringUtils.isEmpty(accountDto.getPassword())) {
+            throw new IllegalArgumentException("Username or Password is empty");
+        }
+
+        AjaxAuthenticationToken ajaxAuthenticationToken = new AjaxAuthenticationToken(accountDto.getUsername(), accountDto.getPassword());
+
+        return getAuthenticationManager().authenticate(ajaxAuthenticationToken);
     }
 
     public boolean isAjax(HttpServletRequest request) {

@@ -1,6 +1,7 @@
 package com.example.corespringsecurity.security.configs;
 
 import com.example.corespringsecurity.security.common.FormAuthenticationDetailsSource;
+import com.example.corespringsecurity.security.filter.AjaxLoginProcessingFilter;
 import com.example.corespringsecurity.security.handler.CustomAccessDeniedHandler;
 import com.example.corespringsecurity.security.handler.CustomAuthenticationFailureHandler;
 import com.example.corespringsecurity.security.handler.CustomAuthenticationSuccessHandler;
@@ -10,15 +11,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
@@ -36,6 +42,9 @@ public class SecurityConfig {
     }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(form -> form
+                .disable()
+        );
         http.authorizeHttpRequests(form -> form
                 .requestMatchers(new AntPathRequestMatcher("/")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/users")).permitAll()
@@ -61,7 +70,15 @@ public class SecurityConfig {
                 .accessDeniedHandler(accessDeniedHandler())
         );
 
+        http.addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
+    }
+
+    private final AuthenticationConfiguration authenticationConfiguration;
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
@@ -78,4 +95,11 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+    @Bean
+    public AjaxLoginProcessingFilter ajaxLoginProcessingFilter() throws Exception {
+        AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter();
+        ajaxLoginProcessingFilter.setAuthenticationManager(authenticationManager());
+        return ajaxLoginProcessingFilter;
+    }
 }
+
