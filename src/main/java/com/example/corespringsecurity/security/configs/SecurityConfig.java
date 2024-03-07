@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -29,6 +30,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
+@Order(1)
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
@@ -42,9 +44,6 @@ public class SecurityConfig {
     }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(form -> form
-                .disable()
-        );
         http.authorizeHttpRequests(form -> form
                 .requestMatchers(new AntPathRequestMatcher("/")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/users")).permitAll()
@@ -70,16 +69,10 @@ public class SecurityConfig {
                 .accessDeniedHandler(accessDeniedHandler())
         );
 
-        http.addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    private final AuthenticationConfiguration authenticationConfiguration;
-    @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         AccessDeniedHandler accessDeniedHandler = new CustomAccessDeniedHandler("/denied");
@@ -93,13 +86,6 @@ public class SecurityConfig {
     @Bean
     protected PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
-    public AjaxLoginProcessingFilter ajaxLoginProcessingFilter() throws Exception {
-        AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter();
-        ajaxLoginProcessingFilter.setAuthenticationManager(authenticationManager());
-        return ajaxLoginProcessingFilter;
     }
 }
 
