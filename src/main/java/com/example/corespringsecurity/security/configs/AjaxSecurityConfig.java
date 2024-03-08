@@ -1,6 +1,8 @@
 package com.example.corespringsecurity.security.configs;
 
 import com.example.corespringsecurity.security.filter.AjaxLoginProcessingFilter;
+import com.example.corespringsecurity.security.handler.AjaxAuthenticationFailureHandler;
+import com.example.corespringsecurity.security.handler.AjaxAuthenticationSuccessHandler;
 import com.example.corespringsecurity.security.provider.AjaxAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,17 +33,24 @@ public class AjaxSecurityConfig {
     }
 
     @Bean
+    public AjaxAuthenticationSuccessHandler ajaxAuthenticationSuccessHandler() {
+        return new AjaxAuthenticationSuccessHandler();
+    }
+    @Bean
+    public AjaxAuthenticationFailureHandler ajaxAuthenticationFailureHandler() {
+        return new AjaxAuthenticationFailureHandler();
+    }
+
+    @Bean
     public SecurityFilterChain ajaxFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher(new AntPathRequestMatcher("/api/**"))
                 .authorizeHttpRequests(form -> form
-                .anyRequest().authenticated()
+                        .requestMatchers(new AntPathRequestMatcher("/api/login")).permitAll()
+                        .anyRequest().authenticated()
         );
 
-        http.csrf(form -> form
-                .disable()
-        );
+        http.csrf(AbstractHttpConfigurer::disable);
 
-        http.authenticationProvider(ajaxAuthenticationProvider());
         http.addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
@@ -49,6 +59,8 @@ public class AjaxSecurityConfig {
     public AjaxLoginProcessingFilter ajaxLoginProcessingFilter() throws Exception {
         AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter();
         ajaxLoginProcessingFilter.setAuthenticationManager(authenticationManager());
+        ajaxLoginProcessingFilter.setAuthenticationSuccessHandler(ajaxAuthenticationSuccessHandler());
+        ajaxLoginProcessingFilter.setAuthenticationFailureHandler(ajaxAuthenticationFailureHandler());
         return ajaxLoginProcessingFilter;
     }
 

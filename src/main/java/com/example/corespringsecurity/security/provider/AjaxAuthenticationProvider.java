@@ -12,7 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 public class AjaxAuthenticationProvider implements AuthenticationProvider {
@@ -32,12 +31,13 @@ public class AjaxAuthenticationProvider implements AuthenticationProvider {
 
         AjaxAuthenticationToken ajaxAuthenticationToken =
                 new AjaxAuthenticationToken(accountContext.getAccount(),null,accountContext.getAuthorities());
+
         return ajaxAuthenticationToken;
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return authentication.equals(AjaxAuthenticationToken.class);
+        return AjaxAuthenticationToken.class.isAssignableFrom(authentication);
     }
 }
 
