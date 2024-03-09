@@ -38,10 +38,10 @@ public class SecurityConfig {
     private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
 
-    @Bean
-    public CustomAuthenticationProvider authenticationProvider() {
-        return new CustomAuthenticationProvider(userDetailsService,passwordEncoder());
-    }
+//    @Bean
+//    public CustomAuthenticationProvider authenticationProvider() {
+//        return new CustomAuthenticationProvider(userDetailsService,passwordEncoder());
+//    }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(form -> form
@@ -63,7 +63,7 @@ public class SecurityConfig {
                 .loginProcessingUrl("/login_proc")
                 .permitAll()
         );
-        http.authenticationProvider(authenticationProvider());
+        //http.authenticationProvider(authenticationProvider());
 
         http.exceptionHandling(form -> form
                 .accessDeniedHandler(accessDeniedHandler())

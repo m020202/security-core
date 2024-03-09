@@ -49,6 +49,8 @@ public class AjaxSecurityConfig {
                         .anyRequest().authenticated()
         );
 
+        http.authenticationProvider(ajaxAuthenticationProvider());
+
         http.csrf(AbstractHttpConfigurer::disable);
 
         http.addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
