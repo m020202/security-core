@@ -14,6 +14,7 @@ import java.io.IOException;
 
 public class AjaxAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     private ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         Account account = (Account) authentication.getPrincipal();

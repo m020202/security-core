@@ -1,6 +1,8 @@
 package com.example.corespringsecurity.security.configs;
 
+import com.example.corespringsecurity.security.common.AjaxLoginAuthenticationEntryPoint;
 import com.example.corespringsecurity.security.filter.AjaxLoginProcessingFilter;
+import com.example.corespringsecurity.security.handler.AjaxAccessDeniedHandler;
 import com.example.corespringsecurity.security.handler.AjaxAuthenticationFailureHandler;
 import com.example.corespringsecurity.security.handler.AjaxAuthenticationSuccessHandler;
 import com.example.corespringsecurity.security.provider.AjaxAuthenticationProvider;
@@ -45,8 +47,14 @@ public class AjaxSecurityConfig {
     public SecurityFilterChain ajaxFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher(new AntPathRequestMatcher("/api/**"))
                 .authorizeHttpRequests(form -> form
+                        .requestMatchers(new AntPathRequestMatcher("/api/messages")).hasRole("MANAGER")
                         .requestMatchers(new AntPathRequestMatcher("/api/login")).permitAll()
                         .anyRequest().authenticated()
+        );
+
+        http.exceptionHandling(handler -> handler
+                .authenticationEntryPoint(ajaxLoginAuthenticationEntryPoint())
+                .accessDeniedHandler(ajaxAccessDeniedHandler())
         );
 
         http.authenticationProvider(ajaxAuthenticationProvider());
@@ -54,6 +62,7 @@ public class AjaxSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
 
         http.addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
@@ -70,5 +79,14 @@ public class AjaxSecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public AjaxLoginAuthenticationEntryPoint ajaxLoginAuthenticationEntryPoint() {
+        return new AjaxLoginAuthenticationEntryPoint();
+    }
+    @Bean
+    public AjaxAccessDeniedHandler ajaxAccessDeniedHandler() {
+        return new AjaxAccessDeniedHandler();
     }
 }
