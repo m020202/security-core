@@ -45,12 +45,15 @@ public class AjaxSecurityConfig {
 
     @Bean
     public SecurityFilterChain ajaxFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher(new AntPathRequestMatcher("/api/**"))
+        http.securityMatcher(new AntPathRequestMatcher("/api/login"))
                 .authorizeHttpRequests(form -> form
-                        .requestMatchers(new AntPathRequestMatcher("/api/messages")).hasRole("MANAGER")
-                        .requestMatchers(new AntPathRequestMatcher("/api/login")).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
         );
+
+        http.securityMatcher(new AntPathRequestMatcher("/api/messages"))
+                .authorizeHttpRequests(form -> form
+                        .anyRequest().hasRole("MANAGER")
+                );
 
         http.exceptionHandling(handler -> handler
                 .authenticationEntryPoint(ajaxLoginAuthenticationEntryPoint())
