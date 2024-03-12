@@ -44,15 +44,26 @@ public class AjaxSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain ajaxFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain ajaxLoginFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher(new AntPathRequestMatcher("/api/login"))
                 .authorizeHttpRequests(form -> form
                         .anyRequest().permitAll()
         );
 
+        http.addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        http.authenticationProvider(ajaxAuthenticationProvider());
+
+        http.csrf(AbstractHttpConfigurer::disable);
+
+        return http.build();
+    }
+
+    @Bean
+    public SecurityFilterChain ajaxManagerFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher(new AntPathRequestMatcher("/api/messages"))
-                .authorizeHttpRequests(form -> form
-                        .anyRequest().hasRole("MANAGER")
+                .authorizeHttpRequests(request -> request
+                        .anyRequest().hasAnyRole("MANAGER")
                 );
 
         http.exceptionHandling(handler -> handler
@@ -60,12 +71,7 @@ public class AjaxSecurityConfig {
                 .accessDeniedHandler(ajaxAccessDeniedHandler())
         );
 
-        http.authenticationProvider(ajaxAuthenticationProvider());
-
         http.csrf(AbstractHttpConfigurer::disable);
-
-        http.addFilterBefore(ajaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
